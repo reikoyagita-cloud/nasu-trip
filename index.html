@@ -1,0 +1,582 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .header { padding: 1.5rem 1rem 1rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .header h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .header p { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+  .tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); padding: 0 1rem; overflow-x: auto; }
+  .tab { padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); }
+  .section { display: none; padding: 1rem; }
+  .section.active { display: block; }
+
+  .plan-nav { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .plan-btn { padding: 6px 12px; font-size: 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; background: var(--color-background-primary); color: var(--color-text-secondary); font-weight: 500; transition: all 0.15s; }
+  .plan-btn.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+
+  .plan-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+  .plan-header { padding: 14px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .plan-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+  .plan-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 3px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; margin-top: 6px; }
+  .badge-car { background: #E6F1FB; color: #0C447C; }
+  .badge-shinkansen { background: #E1F5EE; color: #085041; }
+  .badge-hybrid { background: #FAEEDA; color: #633806; }
+  .badge-warn { background: #FCEBEB; color: #791F1F; }
+
+  .timeline-block { padding: 12px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .timeline-block:last-child { border-bottom: none; }
+  .timeline-label { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; letter-spacing: 0.05em; }
+  .tl-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+  .tl-time { font-size: 13px; font-weight: 500; color: var(--color-text-primary); min-width: 42px; }
+  .tl-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .dot-blue { background: #378ADD; }
+  .dot-green { background: #639922; }
+  .dot-amber { background: #BA7517; }
+  .dot-gray { background: #888780; }
+  .dot-red { background: #E24B4A; }
+  .tl-text { font-size: 13px; color: var(--color-text-primary); line-height: 1.4; }
+  .tl-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+
+  .risk-box { background: #FCEBEB; border: 0.5px solid #F09595; border-radius: var(--border-radius-md); padding: 10px 12px; margin: 12px 16px 0; }
+  .risk-box p { font-size: 12px; color: #791F1F; line-height: 1.5; }
+
+  .cost-section { padding: 1rem; }
+  .cost-overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+  .cost-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+  .cost-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .cost-val { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+  .cost-val small { font-size: 11px; font-weight: 400; }
+
+  .cost-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .cost-table th { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-align: left; padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .cost-table td { padding: 8px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+  .cost-table tr:last-child td { border-bottom: none; }
+  .cost-table .plan-col { font-weight: 500; text-align: right; }
+  .cost-table .cheapest { color: #0F6E56; font-weight: 500; }
+  .cost-table .expensive { color: #993C1D; }
+  .cost-table .total-row td { font-weight: 500; background: var(--color-background-secondary); }
+
+  .compare-grid { display: flex; flex-direction: column; gap: 8px; }
+  .compare-row { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px 14px; }
+  .compare-row-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
+  .bar-group { margin-bottom: 4px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 3px; }
+  .bar-track { height: 6px; background: var(--color-background-secondary); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.3s; }
+
+  .fatigue-row { display: flex; gap: 8px; flex-direction: column; }
+  .fatigue-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px 14px; }
+  .fatigue-plan { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+  .fatigue-row-inner { display: flex; gap: 8px; }
+  .fatigue-item { flex: 1; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 8px 10px; }
+  .fatigue-item-label { font-size: 10px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .fatigue-dots { display: flex; gap: 3px; }
+  .fdot { width: 10px; height: 10px; border-radius: 50%; }
+  .fdot-fill-green { background: #639922; }
+  .fdot-fill-amber { background: #BA7517; }
+  .fdot-fill-red { background: #E24B4A; }
+  .fdot-fill-empty { background: var(--color-border-tertiary); }
+  .fatigue-comment { font-size: 11px; color: var(--color-text-secondary); margin-top: 6px; line-height: 1.4; }
+
+  .recommend-box { background: #E1F5EE; border: 0.5px solid #5DCAA5; border-radius: var(--border-radius-lg); padding: 14px; margin-bottom: 12px; }
+  .recommend-box h3 { font-size: 14px; font-weight: 500; color: #085041; margin-bottom: 6px; }
+  .recommend-box p { font-size: 12px; color: #0F6E56; line-height: 1.5; }
+  .caution-box { background: #FAEEDA; border: 0.5px solid #EF9F27; border-radius: var(--border-radius-lg); padding: 14px; margin-bottom: 8px; }
+  .caution-box h3 { font-size: 14px; font-weight: 500; color: #633806; margin-bottom: 6px; }
+  .caution-box p { font-size: 12px; color: #854F0B; line-height: 1.5; }
+
+  .member-tag { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 500; margin-right: 4px; }
+  .tag-takaoo { background: #E6F1FB; color: #185FA5; }
+  .tag-oppama { background: #E1F5EE; color: #0F6E56; }
+
+  .tl-group { margin-bottom: 10px; }
+  .tl-group-label { font-size: 10px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 5px; letter-spacing: 0.05em; }
+
+  .hidden-plan { display: none; }
+</style>
+
+<div class="header">
+  <h1>那須旅行 移動プラン比較</h1>
+  <p>7月26日（日）〜27日（月）｜大人6名・子供4名 計10名</p>
+  <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+    <span class="member-tag tag-takaoo">高尾組（百合子家4名）</span>
+    <span class="member-tag tag-oppama">追浜組（公平家+佐和子+礼子 6名）</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('schedule')">タイムライン</div>
+  <div class="tab" onclick="switchTab('cost')">コスト</div>
+  <div class="tab" onclick="switchTab('fatigue')">疲労度</div>
+  <div class="tab" onclick="switchTab('summary')">総合比較</div>
+</div>
+
+<div id="tab-schedule" class="section active">
+  <div class="plan-nav">
+    <div class="plan-btn active" onclick="showPlan('p1')">案1 レンタカー</div>
+    <div class="plan-btn" onclick="showPlan('p2')">案2 モビリオ</div>
+    <div class="plan-btn" onclick="showPlan('p3')">案3 新幹線</div>
+    <div class="plan-btn" onclick="showPlan('p4')">案4 早割</div>
+    <div class="plan-btn" onclick="showPlan('p5')">案5 ハイブリッド</div>
+  </div>
+
+  <div id="plan-p1" class="plan-card">
+    <div class="plan-header">
+      <div class="plan-title">案1 ｜ レンタカー（タイムズカーシェア）</div>
+      <div class="plan-sub">公平・礼子名義で大型車を確保。全員が座って移動するバランス型。</div>
+      <span class="badge badge-car">ドア・トゥ・ドア</span>
+    </div>
+    <div class="timeline-block">
+      <div class="timeline-label">往路｜7月26日（日）</div>
+      <div class="tl-group">
+        <div class="tl-group-label"><span class="member-tag tag-oppama">追浜組</span></div>
+        <div class="tl-row"><div class="tl-time">07:30</div><div class="tl-dot dot-blue"></div><div class="tl-text">追浜出発<div class="tl-sub">公平家・佐和子・礼子 合流して出発</div></div></div>
+        <div class="tl-row"><div class="tl-time">09:20</div><div class="tl-dot dot-amber"></div><div class="tl-text">羽生PA 到着・休憩</div></div>
+      </div>
+      <div class="tl-group" style="margin-top:10px;">
+        <div class="tl-group-label"><span class="member-tag tag-takaoo">高尾組</span></div>
+        <div class="tl-row"><div class="tl-time">08:15</div><div class="tl-dot dot-green"></div><div class="tl-text">高尾出発</div></div>
+        <div class="tl-row"><div class="tl-time">09:20</div><div class="tl-dot dot-amber"></div><div class="tl-text">羽生PA 到着・全家族合流</div></div>
+      </div>
+      <div class="tl-row" style="margin-top:8px;"><div class="tl-time">11:00</div><div class="tl-dot dot-gray"></div><div class="tl-text" style="font-weight:500;">那須ハイランドパーク 着</div></div>
+    </div>
+    <div class="timeline-block">
+      <div class="timeline-label">復路｜7月27日（月）</div>
+      <div class="tl-row"><div class="tl-time">16:00</div><div class="tl-dot dot-blue"></div><div class="tl-text">那須 出発</div></div>
+      <div class="tl-row"><div class="tl-time">17:20</div><div class="tl-dot dot-amber"></div><div class="tl-text">羽生PA 休憩・解散式</div></div>
+      <div class="tl-row"><div class="tl-time">18:00</div><div class="tl-dot dot-gray"></div><div class="tl-text">久喜白岡JCT 付近で分岐<div class="tl-sub">高尾方面 ／ 横浜方面</div></div></div>
+      <div class="tl-row"><div class="tl-time">18:40〜</div><div class="tl-dot dot-green"></div><div class="tl-text" style="font-weight:500;">各自帰宅（〜19:30）</div></div>
+    </div>
+    <div class="risk-box"><p>⚠️ 日曜・月曜の東北道・首都高の渋滞により、1〜2時間遅れる可能性あり。</p></div>
+    <div style="padding: 12px 16px;">
+      <div style="font-size:12px; color:var(--color-text-secondary);">荷物スペース：<span style="color:#0F6E56; font-weight:500;">余裕あり</span>｜帰り座れる：<span style="color:#0F6E56; font-weight:500;">全員OK</span></div>
+    </div>
+  </div>
+
+  <div id="plan-p2" class="plan-card hidden-plan">
+    <div class="plan-header">
+      <div class="plan-title">案2 ｜ モビリオ（自家用車）</div>
+      <div class="plan-sub">最安プランだが、積載量に深刻な問題あり。現実的に不可能に近い。</div>
+      <span class="badge badge-car">ドア・トゥ・ドア</span>
+      <span class="badge badge-warn">積載不可</span>
+    </div>
+    <div class="timeline-block">
+      <div class="timeline-label">往路・復路のスケジュールは案1と同じ</div>
+      <div class="tl-row"><div class="tl-time">07:30</div><div class="tl-dot dot-blue"></div><div class="tl-text">追浜組 出発</div></div>
+      <div class="tl-row"><div class="tl-time">08:15</div><div class="tl-dot dot-green"></div><div class="tl-text">高尾組 出発</div></div>
+      <div class="tl-row"><div class="tl-time">09:20</div><div class="tl-dot dot-amber"></div><div class="tl-text">羽生PA 全家族合流</div></div>
+      <div class="tl-row"><div class="tl-time">11:00</div><div class="tl-dot dot-gray"></div><div class="tl-text" style="font-weight:500;">那須ハイランドパーク 着</div></div>
+    </div>
+    <div class="risk-box">
+      <p>🚨 最大の問題：モビリオは6人乗車すると荷物スペースがほぼゼロになります。10人分の宿泊荷物（スーツケース・子供用品等）を積むのは現実的に不可能。別途宅急便手配が必須となり、コスト優位が薄れます。</p>
+    </div>
+    <div style="padding: 12px 16px;">
+      <div style="font-size:12px; color:var(--color-text-secondary);">荷物スペース：<span style="color:#993C1D; font-weight:500;">ほぼゼロ（要別送）</span>｜帰り座れる：<span style="color:#0F6E56; font-weight:500;">OK</span></div>
+    </div>
+  </div>
+
+  <div id="plan-p3" class="plan-card hidden-plan">
+    <div class="plan-header">
+      <div class="plan-title">案3 ｜ 新幹線（通常料金）</div>
+      <div class="plan-sub">時間は正確。ただし駅までの移動・帰りのラッシュが体力を消耗。</div>
+      <span class="badge badge-shinkansen">新幹線</span>
+    </div>
+    <div class="timeline-block">
+      <div class="timeline-label">往路｜7月26日（日）</div>
+      <div class="tl-group">
+        <div class="tl-group-label"><span class="member-tag tag-oppama">追浜組 ｜ 佐和子</span></div>
+        <div class="tl-row"><div class="tl-time">07:08</div><div class="tl-dot dot-blue"></div><div class="tl-text">佐島入口発（バス）⇒ 逗子駅</div></div>
+        <div class="tl-row"><div class="tl-time">08:05</div><div class="tl-dot dot-blue"></div><div class="tl-text">追浜駅発（京急・横須賀線）</div></div>
+        <div class="tl-row"><div class="tl-time">08:23</div><div class="tl-dot dot-blue"></div><div class="tl-text">関内駅発（京浜東北線）礼子</div></div>
+      </div>
+      <div class="tl-group" style="margin-top:10px;">
+        <div class="tl-group-label"><span class="member-tag tag-takaoo">高尾組</span></div>
+        <div class="tl-row"><div class="tl-time">07:51</div><div class="tl-dot dot-green"></div><div class="tl-text">高尾駅発（中央線）</div></div>
+      </div>
+      <div class="tl-row" style="margin-top:8px;"><div class="tl-time">09:12〜</div><div class="tl-dot dot-amber"></div><div class="tl-text">東京駅 各自到着・集合<div class="tl-sub">〜09:28 までに集合</div></div></div>
+      <div class="tl-row"><div class="tl-time">09:44</div><div class="tl-dot dot-gray"></div><div class="tl-text">なすの255号 東京発</div></div>
+      <div class="tl-row"><div class="tl-time">10:30</div><div class="tl-dot dot-gray"></div><div class="tl-text" style="font-weight:500;">那須塩原駅 着 ⇒ レンタカーで現地へ</div></div>
+    </div>
+    <div class="timeline-block">
+      <div class="timeline-label">復路｜7月27日（月）｜帰宅ラッシュとの戦い</div>
+      <div class="tl-row"><div class="tl-time">16:00</div><div class="tl-dot dot-blue"></div><div class="tl-text">那須塩原駅 発</div></div>
+      <div class="tl-row"><div class="tl-time">17:16</div><div class="tl-dot dot-red"></div><div class="tl-text">東京駅 着・解散<div class="tl-sub">ここから帰宅ラッシュへ突入</div></div></div>
+      <div class="tl-row"><div class="tl-time">18:30</div><div class="tl-dot dot-amber"></div><div class="tl-text">礼子：関内着 ／ 百合子家：高尾着</div></div>
+      <div class="tl-row"><div class="tl-time">18:33</div><div class="tl-dot dot-amber"></div><div class="tl-text">公平家：追浜着</div></div>
+      <div class="tl-row"><div class="tl-time">19:07</div><div class="tl-dot dot-red"></div><div class="tl-text">佐和子：佐島入口着（バス乗り継ぎ）</div></div>
+    </div>
+    <div class="risk-box"><p>⚠️ 月曜夕方の帰宅ラッシュで、中央線・京急・横須賀線は大混雑。10人分の大荷物を抱えて始発駅でもない電車に乗る。旅行最後に最も体力を消耗するプラン。</p></div>
+    <div style="padding: 12px 16px;">
+      <div style="font-size:12px; color:var(--color-text-secondary);">荷物：<span style="color:#BA7517; font-weight:500;">自分で運搬（重)</span>｜帰り座れる：<span style="color:#993C1D; font-weight:500;">保証なし</span></div>
+    </div>
+  </div>
+
+  <div id="plan-p4" class="plan-card hidden-plan">
+    <div class="plan-header">
+      <div class="plan-title">案4 ｜ 新幹線（早割）</div>
+      <div class="plan-sub">案3と同じスケジュール。早めの予約で約28,640円安くなる。</div>
+      <span class="badge badge-shinkansen">新幹線・早割</span>
+    </div>
+    <div class="timeline-block">
+      <div class="timeline-label">スケジュールは案3と同じ</div>
+      <div class="tl-row"><div class="tl-time">09:44</div><div class="tl-dot dot-gray"></div><div class="tl-text">東京発 なすの255号</div></div>
+      <div class="tl-row"><div class="tl-time">10:30</div><div class="tl-dot dot-gray"></div><div class="tl-text" style="font-weight:500;">那須塩原 着</div></div>
+      <div class="tl-row"><div class="tl-time">16:00</div><div class="tl-dot dot-blue"></div><div class="tl-text">那須塩原発（帰路）</div></div>
+      <div class="tl-row"><div class="tl-time">17:16</div><div class="tl-dot dot-red"></div><div class="tl-text">東京着 ⇒ 帰宅ラッシュへ</div></div>
+    </div>
+    <div style="background:#E6F1FB; border-radius:var(--border-radius-md); padding:10px 12px; margin:12px 16px 0;">
+      <p style="font-size:12px; color:#0C447C;">早割で案3より約28,640円節約。ただし購入期限・変更不可の制約あり。体力消耗度は案3と同じ。</p>
+    </div>
+    <div class="risk-box"><p>⚠️ 帰宅ラッシュの混雑・大荷物の負担は案3と同じ。座れる保証なし。</p></div>
+    <div style="padding: 12px 16px;">
+      <div style="font-size:12px; color:var(--color-text-secondary);">荷物：<span style="color:#BA7517; font-weight:500;">自分で運搬</span>｜帰り座れる：<span style="color:#993C1D; font-weight:500;">保証なし</span></div>
+    </div>
+  </div>
+
+  <div id="plan-p5" class="plan-card hidden-plan">
+    <div class="plan-header">
+      <div class="plan-title">案5 ｜ ハイブリッド（高尾：車 ／ 追浜：新幹線）</div>
+      <div class="plan-sub">各家族のルートに最適な手段を選ぶ折衷案。</div>
+      <span class="badge badge-hybrid">ハイブリッド</span>
+    </div>
+    <div class="timeline-block">
+      <div class="timeline-label">往路｜7月26日（日）</div>
+      <div class="tl-group">
+        <div class="tl-group-label"><span class="member-tag tag-takaoo">高尾組 → 車で移動</span></div>
+        <div class="tl-row"><div class="tl-time">08:15</div><div class="tl-dot dot-green"></div><div class="tl-text">高尾 自家用車で出発</div></div>
+        <div class="tl-row"><div class="tl-time">09:20</div><div class="tl-dot dot-amber"></div><div class="tl-text">羽生PA 休憩</div></div>
+        <div class="tl-row"><div class="tl-time">11:00</div><div class="tl-dot dot-gray"></div><div class="tl-text" style="font-weight:500;">那須ハイランドパーク 着</div></div>
+      </div>
+      <div class="tl-group" style="margin-top:10px;">
+        <div class="tl-group-label"><span class="member-tag tag-oppama">追浜組 → 新幹線で移動</span></div>
+        <div class="tl-row"><div class="tl-time">07:08</div><div class="tl-dot dot-blue"></div><div class="tl-text">佐島入口発（バス）佐和子</div></div>
+        <div class="tl-row"><div class="tl-time">08:05</div><div class="tl-dot dot-blue"></div><div class="tl-text">追浜駅発 公平家</div></div>
+        <div class="tl-row"><div class="tl-time">08:23</div><div class="tl-dot dot-blue"></div><div class="tl-text">関内駅発 礼子</div></div>
+        <div class="tl-row"><div class="tl-time">09:44</div><div class="tl-dot dot-gray"></div><div class="tl-text">東京発 新幹線</div></div>
+        <div class="tl-row"><div class="tl-time">10:30</div><div class="tl-dot dot-gray"></div><div class="tl-text" style="font-weight:500;">那須塩原 着 ⇒ 現地合流</div></div>
+      </div>
+    </div>
+    <div class="timeline-block">
+      <div class="timeline-label">復路｜7月27日（月）</div>
+      <div class="tl-group">
+        <div class="tl-group-label"><span class="member-tag tag-takaoo">高尾組 → 車で帰宅（楽）</span></div>
+        <div class="tl-row"><div class="tl-time">16:00</div><div class="tl-dot dot-green"></div><div class="tl-text">那須 出発 → 高尾へ直帰</div></div>
+        <div class="tl-row"><div class="tl-time">18:40〜</div><div class="tl-dot dot-green"></div><div class="tl-text" style="font-weight:500;">高尾 帰宅</div></div>
+      </div>
+      <div class="tl-group" style="margin-top:10px;">
+        <div class="tl-group-label"><span class="member-tag tag-oppama">追浜組 → 新幹線で帰宅（混雑注意）</span></div>
+        <div class="tl-row"><div class="tl-time">16:00</div><div class="tl-dot dot-blue"></div><div class="tl-text">那須塩原 発</div></div>
+        <div class="tl-row"><div class="tl-time">17:16</div><div class="tl-dot dot-red"></div><div class="tl-text">東京着 ⇒ 帰宅ラッシュへ</div></div>
+        <div class="tl-row"><div class="tl-time">18:30〜</div><div class="tl-dot dot-amber"></div><div class="tl-text" style="font-weight:500;">追浜・関内 帰宅</div></div>
+        <div class="tl-row"><div class="tl-time">19:07</div><div class="tl-dot dot-red"></div><div class="tl-text">佐和子：佐島入口着</div></div>
+      </div>
+    </div>
+    <div class="risk-box"><p>⚠️ 追浜組の帰りは引き続き帰宅ラッシュが課題。高尾組は車でゆったり帰宅できる。</p></div>
+    <div style="padding: 12px 16px;">
+      <div style="font-size:12px; color:var(--color-text-secondary);">高尾：<span style="color:#0F6E56; font-weight:500;">座って帰れる</span>｜追浜：<span style="color:#993C1D; font-weight:500;">座れる保証なし</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-cost" class="section">
+  <div class="cost-overview">
+    <div class="cost-card">
+      <div class="cost-label">最安</div>
+      <div class="cost-val">43,000<small>円</small></div>
+      <div style="font-size:11px; color:#0F6E56; margin-top:2px;">案2 モビリオ</div>
+    </div>
+    <div class="cost-card">
+      <div class="cost-label">中間</div>
+      <div class="cost-val">71,520<small>円</small></div>
+      <div style="font-size:11px; color:var(--color-text-secondary); margin-top:2px;">案1 レンタカー</div>
+    </div>
+    <div class="cost-card">
+      <div class="cost-label">最高</div>
+      <div class="cost-val">134,955<small>円</small></div>
+      <div style="font-size:11px; color:#993C1D; margin-top:2px;">案3 新幹線通常</div>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto; margin-bottom:1rem;">
+    <table class="cost-table" style="min-width:480px;">
+      <thead>
+        <tr>
+          <th>メンバー</th>
+          <th style="text-align:right;">案1<br>レンタカー</th>
+          <th style="text-align:right;">案2<br>モビリオ</th>
+          <th style="text-align:right;">案3<br>新幹線（通）</th>
+          <th style="text-align:right;">案4<br>新幹線（早）</th>
+          <th style="text-align:right;">案5<br>ハイブリッド</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>百合子家</td>
+          <td class="plan-col">24,000</td>
+          <td class="plan-col cheapest">24,000</td>
+          <td class="plan-col expensive">59,190</td>
+          <td class="plan-col">46,660</td>
+          <td class="plan-col cheapest">24,000</td>
+        </tr>
+        <tr>
+          <td>公平家</td>
+          <td class="plan-col">27,600</td>
+          <td class="plan-col cheapest">11,400</td>
+          <td class="plan-col expensive">42,525</td>
+          <td class="plan-col">33,575</td>
+          <td class="plan-col">39,925</td>
+        </tr>
+        <tr>
+          <td>佐和子</td>
+          <td class="plan-col">9,660</td>
+          <td class="plan-col cheapest">3,800</td>
+          <td class="plan-col expensive">17,540</td>
+          <td class="plan-col">13,960</td>
+          <td class="plan-col">17,540</td>
+        </tr>
+        <tr>
+          <td>礼子</td>
+          <td class="plan-col">10,260</td>
+          <td class="plan-col cheapest">3,800</td>
+          <td class="plan-col expensive">15,700</td>
+          <td class="plan-col">12,120</td>
+          <td class="plan-col">15,700</td>
+        </tr>
+        <tr class="total-row">
+          <td>合計</td>
+          <td class="plan-col">71,520</td>
+          <td class="plan-col cheapest">43,000</td>
+          <td class="plan-col expensive">134,955</td>
+          <td class="plan-col">106,315</td>
+          <td class="plan-col">97,165</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:10px 12px; margin-bottom:8px;">
+    <p style="font-size:12px; color:var(--color-text-secondary); line-height:1.5;">単位：円｜緑字＝各メンバーの最安、赤字＝最高額</p>
+  </div>
+
+  <div class="caution-box">
+    <h3>案2（モビリオ）は"見かけ最安"に注意</h3>
+    <p>43,000円と最安ですが、6人乗車すると荷物スペースがほぼゼロ。10人分の宿泊荷物を宅急便で別送すると追加費用が発生し、コスト優位が大幅に薄れます。</p>
+  </div>
+</div>
+
+<div id="tab-fatigue" class="section">
+  <div style="font-size:13px; color:var(--color-text-secondary); margin-bottom:12px; line-height:1.5;">各プランの帰りの疲労度を、「座れるか」「荷物の負担」「乗り換え回数」で評価しています。</div>
+
+  <div class="fatigue-row">
+    <div class="fatigue-card">
+      <div class="fatigue-plan">案1 レンタカー</div>
+      <div class="fatigue-row-inner">
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">座れるか</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">荷物の楽さ</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">疲れにくさ</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fatigue-comment">全員が座って帰宅。荷物の積み降ろしは駐車場のみ。渋滞リスクはあるが体力消耗は最小。</div>
+    </div>
+
+    <div class="fatigue-card">
+      <div class="fatigue-plan">案2 モビリオ</div>
+      <div class="fatigue-row-inner">
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">座れるか</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">荷物の楽さ</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-red"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">疲れにくさ</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-amber"></div><div class="fdot fdot-fill-amber"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fatigue-comment">座れるが荷物が積めない。別送の手続き負担が大きく、実質的に不可能に近い。</div>
+    </div>
+
+    <div class="fatigue-card">
+      <div class="fatigue-plan">案3 新幹線（通常）</div>
+      <div class="fatigue-row-inner">
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">座れるか</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-red"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">荷物の楽さ</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-red"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">疲れにくさ</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-red"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fatigue-comment">月曜帰宅ラッシュに大荷物で乗車。始発駅でなく座れる保証なし。旅の締めくくりが最も過酷。</div>
+    </div>
+
+    <div class="fatigue-card">
+      <div class="fatigue-plan">案4 新幹線（早割）</div>
+      <div class="fatigue-row-inner">
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">座れるか</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-red"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">荷物の楽さ</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-red"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">疲れにくさ</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-red"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fatigue-comment">案3と体力消耗度は同じ。節約できるが変更不可の制約もあり、疲れに対してのメリットはなし。</div>
+    </div>
+
+    <div class="fatigue-card">
+      <div class="fatigue-plan">案5 ハイブリッド</div>
+      <div class="fatigue-row-inner">
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">高尾組 帰り</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-green"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+        <div class="fatigue-item">
+          <div class="fatigue-item-label">追浜組 帰り</div>
+          <div class="fatigue-dots">
+            <div class="fdot fdot-fill-red"></div><div class="fdot fdot-fill-amber"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div><div class="fdot fdot-fill-empty"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fatigue-comment">高尾組は車でゆったり。追浜組は帰宅ラッシュへ。家族間の疲労度に差が出るプラン。</div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-summary" class="section">
+  <div class="recommend-box">
+    <h3>編集部おすすめ：案1 レンタカー</h3>
+    <p>コスト・疲労度・荷物のバランスが最も取れたプラン。全員が座って帰宅でき、荷物も積み放題。渋滞リスクはあるが、旅行の終わりに電車に揺られる疲弊を避けられる。</p>
+  </div>
+
+  <div class="caution-box">
+    <h3>案2（モビリオ）は最安だが要注意</h3>
+    <p>43,000円と圧倒的に安いが、6人乗ると荷物スペースがほぼゼロになる。10人分の宿泊荷物を積むのは現実的に不可能で、宅急便別送が必須。</p>
+  </div>
+
+  <div style="overflow-x:auto; margin-bottom:1rem;">
+    <table class="cost-table" style="min-width:360px;">
+      <thead>
+        <tr>
+          <th>プラン</th>
+          <th style="text-align:right;">総額</th>
+          <th style="text-align:center;">帰り座れる</th>
+          <th style="text-align:center;">荷物</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>案1</strong> レンタカー</td>
+          <td class="plan-col">71,520円</td>
+          <td style="text-align:center; color:#0F6E56; font-weight:500;">全員OK</td>
+          <td style="text-align:center; color:#0F6E56; font-weight:500;">余裕あり</td>
+        </tr>
+        <tr>
+          <td><strong>案2</strong> モビリオ</td>
+          <td class="plan-col cheapest">43,000円</td>
+          <td style="text-align:center; color:#0F6E56; font-weight:500;">全員OK</td>
+          <td style="text-align:center; color:#993C1D; font-weight:500;">ほぼ不可能</td>
+        </tr>
+        <tr>
+          <td><strong>案3</strong> 新幹線（通）</td>
+          <td class="plan-col expensive">134,955円</td>
+          <td style="text-align:center; color:#993C1D; font-weight:500;">保証なし</td>
+          <td style="text-align:center; color:#993C1D; font-weight:500;">自分で運搬</td>
+        </tr>
+        <tr>
+          <td><strong>案4</strong> 新幹線（早）</td>
+          <td class="plan-col">106,315円</td>
+          <td style="text-align:center; color:#993C1D; font-weight:500;">保証なし</td>
+          <td style="text-align:center; color:#993C1D; font-weight:500;">自分で運搬</td>
+        </tr>
+        <tr>
+          <td><strong>案5</strong> ハイブリッド</td>
+          <td class="plan-col">97,165円</td>
+          <td style="text-align:center; color:#BA7517; font-weight:500;">高尾OK/追浜×</td>
+          <td style="text-align:center; color:#BA7517; font-weight:500;">追浜は運搬</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px 14px;">
+    <div style="font-size:12px; font-weight:500; color:var(--color-text-primary); margin-bottom:8px;">各プランをさらに詳しく確認</div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      <button onclick="switchToSchedule('p1')" style="font-size:12px; padding:6px 12px;">案1 タイムラインを見る ↗</button>
+      <button onclick="switchToSchedule('p3')" style="font-size:12px; padding:6px 12px;">案3 タイムラインを見る ↗</button>
+      <button onclick="switchToSchedule('p5')" style="font-size:12px; padding:6px 12px;">案5 タイムラインを見る ↗</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const tabMap = { schedule: 0, cost: 1, fatigue: 2, summary: 3 };
+  document.querySelectorAll('.tab')[tabMap[name]].classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function showPlan(id) {
+  document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.add('hidden-plan'));
+  const btns = document.querySelectorAll('.plan-btn');
+  const idx = { p1: 0, p2: 1, p3: 2, p4: 3, p5: 4 };
+  btns[idx[id]].classList.add('active');
+  document.getElementById('plan-' + id).classList.remove('hidden-plan');
+}
+
+function switchToSchedule(planId) {
+  switchTab('schedule');
+  showPlan(planId);
+}
+</script>
